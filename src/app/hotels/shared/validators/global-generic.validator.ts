@@ -10,7 +10,7 @@ export class GlobalGenericValidator {
 
 
     public createErrorMessage (container: FormGroup): {[key: string]: string} {
-        const errorMessage = {};
+        const errorMessage: any = {};
 
         for(const controlName in container.controls) {
             if (container.controls.hasOwnProperty(controlName)){
@@ -19,9 +19,9 @@ export class GlobalGenericValidator {
                 if(this.validatorMessage[controlName]) {
 
 
-                    errorMessage [controlName] = '';
+                    errorMessage [controlName] =  '';
 
-                    if((selectedControl.dirty || selectedControl.touched)){
+                    if((selectedControl.dirty || selectedControl.touched) && selectedControl.errors){
                         Object.keys(selectedControl.errors).map((errorMessagekey: string) =>{
                             if(this.validatorMessage[controlName][errorMessagekey]){
                                 errorMessage[controlName] += this.validatorMessage[controlName][errorMessagekey] + '';

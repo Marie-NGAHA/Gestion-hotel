@@ -3,6 +3,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import { HotelListService } from '../shared/services/hotel-list.service';
 import { IHotel } from '../shared/models/hotel';
+import { GlobalGenericValidator } from '../shared/validators/global-generic.validator';
 
 @Component({
   selector: 'app-hotel-edit',
@@ -19,6 +20,8 @@ export class HotelEditComponent implements OnInit{
 
   public errorMessage!: string;
 
+  public formErrors: { [key: string]: {[key: string]: string} } = {};
+
   private validationMessages: { [key: string]: {[key: string]: string} } = {
     hotelName: {
       required: 'Le nom de l\'hotel est obligatoire'
@@ -27,6 +30,8 @@ export class HotelEditComponent implements OnInit{
       redquired: 'Le prix de l\'hotel est obligatoire'
     }
   };
+
+  private globalGenericValidator!: GlobalGenericValidator;
 
   constructor(
     
@@ -43,6 +48,7 @@ export class HotelEditComponent implements OnInit{
 
 
   ngOnInit(): void {
+    this.globalGenericValidator = new GlobalGenericValidator(this.validationMessages);
     this.hotelform = this.fb.group({
       hotelName:['',Validators.required],
       price:['',Validators.required],
@@ -52,6 +58,7 @@ export class HotelEditComponent implements OnInit{
 
 
     });
+    this.formErrors = this.globalGenericValidator.createErrorMessage(this.hotelform);
 
     this.route.paramMap.subscribe(params => {
       this.getSelectedHotel(params.get('id'))

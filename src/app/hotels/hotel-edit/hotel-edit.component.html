@@ -31,7 +31,14 @@
                     type="text" 
                     class="form-control" 
                     formControlName="hotelName"
-                    placeholder="Nom(obligatoire)">
+                    placeholder="Nom(obligatoire)"
+                    [ngClass]="{'is_invalid': formErrors.hotelName}">
+
+
+                    <span class="invalid-feedback">
+                        {{formErrors.hotelName }}
+                    </span>
+                   
                     
 
 
