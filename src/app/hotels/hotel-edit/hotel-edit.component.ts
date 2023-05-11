@@ -17,7 +17,16 @@ export class HotelEditComponent implements OnInit{
 
   public pageTitle!: string;
 
-  public errorMessage!: string
+  public errorMessage!: string;
+
+  private validationMessages: { [key: string]: {[key: string]: string} } = {
+    hotelName: {
+      required: 'Le nom de l\'hotel est obligatoire'
+    },
+    price:{
+      redquired: 'Le prix de l\'hotel est obligatoire'
+    }
+  };
 
   constructor(
     
