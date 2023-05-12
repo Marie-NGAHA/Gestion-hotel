@@ -19,6 +19,7 @@
     
 
     <div class="'card-body">
+        
         <form  (ngSubmit)="saveHotel()" novalidate [formGroup]="hotelform">
             <div class="form-group row mb-2">
                 <label for="hotelNameId" class="col-md-2 col-form-label">
@@ -56,7 +57,14 @@
                     type="text"
                      class="form-control" 
                      formControlName="price"
-                     placeholder="Prix(obligatoire)">
+                     placeholder="Prix(obligatoire)"
+                     [ngClass]="{'is_invalid': formErrors.price}"
+                     />
+
+                     <span class="invalid-feedback">
+                        {{formErrors.price }}
+                    </span>
+
                     
 
 
@@ -74,7 +82,14 @@
                     type="text" 
                     class="form-control" 
                     formControlName="rating"
-                    placeholder="Evaluation(1-5)">
+                    placeholder="Evaluation(1-5)"
+                    [ngClass]="{'is_invalid': formErrors.rating}"
+                    />
+
+                    <span class="invalid-feedback">
+                        {{formErrors.rating }}
+                    </span>
+
                     
 
 

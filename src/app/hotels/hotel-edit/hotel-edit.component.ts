@@ -1,16 +1,23 @@
-import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AfterViewInit, Component, ElementRef, OnInit , ViewChild, ViewChildren} from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormControlName, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HotelListService } from '../shared/services/hotel-list.service';
 import { IHotel } from '../shared/models/hotel';
 import { GlobalGenericValidator } from '../shared/validators/global-generic.validator';
+import { EMPTY, Observable, debounce, debounceTime, fromEvent, merge, timer } from 'rxjs';
+import { NumberValidators } from '../shared/validators/numbers.validator';
 
 @Component({
   selector: 'app-hotel-edit',
   templateUrl: './hotel-edit.component.html',
   styleUrls: ['./hotel-edit.component.css']
 })
-export class HotelEditComponent implements OnInit{
+export class HotelEditComponent implements OnInit, AfterViewInit{
+
+  @ViewChildren(FormControlName, {read: ElementRef}) inputElements!: ElementRef[];
+
+ 
+
 
   public hotelform!: FormGroup;
 
@@ -20,18 +27,26 @@ export class HotelEditComponent implements OnInit{
 
   public errorMessage!: string;
 
-  public formErrors: { [key: string]: {[key: string]: string} } = {};
+  public formErrors: { [key: string]: {[key: string]: string} } |any = {};
 
   private validationMessages: { [key: string]: {[key: string]: string} } = {
     hotelName: {
-      required: 'Le nom de l\'hotel est obligatoire'
+      required: 'Le nom de l\'hotel est obligatoire',
+      minlength: 'Le nom de l\'hotel doit comporter au moins 4 caractères'
     },
     price:{
-      redquired: 'Le prix de l\'hotel est obligatoire'
+      redquired: 'Le prix de l\'hotel est obligatoire',
+      pattern: 'Le prix de l\'hotel doit etre un nombre'
+    },
+    rating: {
+      range: 'Donnez une note comprise entre 1 et 5'
     }
   };
 
   private globalGenericValidator!: GlobalGenericValidator;
+
+  private isFormSubmitted!: boolean;
+
 
   constructor(
     
@@ -45,25 +60,46 @@ export class HotelEditComponent implements OnInit{
     
     
     ){}
+  
 
 
   ngOnInit(): void {
     this.globalGenericValidator = new GlobalGenericValidator(this.validationMessages);
+    
     this.hotelform = this.fb.group({
-      hotelName:['',Validators.required],
-      price:['',Validators.required],
-      rating:[''],
+      hotelName:['',
+        [Validators.required, Validators.minLength(4)]],
+      price:['',
+      [Validators.required, Validators.pattern(/^-?(0|[1-9]\d*)?$/)]],
+      rating:['', NumberValidators.range(1,5)],
       description:[''],
       tags: this.fb.array([])
 
 
     });
-    this.formErrors = this.globalGenericValidator.createErrorMessage(this.hotelform);
+    
 
     this.route.paramMap.subscribe(params => {
       this.getSelectedHotel(params.get('id'))
     });
     
+  }
+
+  ngAfterViewInit(){
+
+  const formControlBlurs: Observable<unknown>[] = this.inputElements
+    .map((formControlElemRef: ElementRef) => fromEvent (formControlElemRef.nativeElement, 'blur'));
+
+  merge(this.hotelform.valueChanges, ...formControlBlurs)
+    .pipe(
+      //debounceTime(800)
+      (() => this.isFormSubmitted ? EMPTY : timer(800))
+      )
+    .subscribe(() => {
+       this.formErrors = this.globalGenericValidator.createErrorMessage(this.hotelform), this.isFormSubmitted;
+       console.log('errors: ', this.formErrors);
+  });
+
   }
 
   public hideError(): void{
@@ -130,6 +166,12 @@ export class HotelEditComponent implements OnInit{
 
 
   public saveHotel(): void{
+    this.isFormSubmitted = true;
+
+    this.hotelform.updateValueAndValidity({
+      onlySelf:true,
+      emitEvent: true
+    });
     if(this.hotelform.valid){
       if(this.hotelform.dirty) {
 
@@ -151,6 +193,8 @@ export class HotelEditComponent implements OnInit{
           });
         }
       }
+    } else {
+      this.errorMessage = 'Corrigez les erreurs svp'
     }
     console.log(this.hotelform.value);
 
